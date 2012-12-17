@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<script src="jquery-1.8.3.min.js"></script>
+<script>
+function all_tasks()
+{
+  var task_id;
+  $("#tasks").html("");
+  if(localStorage.length > 0)
+  {
+    for (task_id in localStorage)
+    {
+      var task_data=JSON.parse(localStorage.getItem(task_id));
+      display_task(task_id,task_data.task,task_data.done);
+    }
+  }
+  update_status();
+}
+
+function display_task(task_id,msg,status)
+{
+  var checked = (status=="1")? "checked='true'" : "";
+  var style = (status=="1")? "line-through" : "none";
+  var task_html="<div id='"+task_id+"'><input type='checkbox' "+checked+"><span style='text-decoration:"+style+"'>"+msg+"</span><button>Delete</button>";
+  $("#tasks").append(task_html);
+
+}
+function task_exists(msg)
+{
+  for (key in localStorage)
+  {
+    var tmp_ar = JSON.parse(localStorage.getItem(key));
+    if(tmp_ar["task"]==msg)
+      return true;
+  }
+  return false;
+}
+
+function remove_task(task_id)
+{
+  localStorage.removeItem(task_id);
+}
+
+function update_task(task_id,task_status)
+{
+  var task = JSON.parse(localStorage.getItem(task_id));
+  task.done = task_status;
+  localStorage.setItem(task_id,JSON.stringify(task));
+
+}
+function add_task(task_id,data)
+{
+  var task=JSON.stringify(data);
+  localStorage.setItem(task_id,task);
+}
+
+function update_status()
+{
+  $("#itemcount").html(localStorage.length);
+  $("#itemchecked").html($("input:checkbox:checked").length);
+}
+
+$(document).ready(function(){
+
+  if(localStorage.length>0)
+    all_tasks();
+  $("#item").keyup(function(e){
+     //if enter key pressed 
+    if(e.keyCode== 13)
+    { 
+      var msg=$(this).val();
+      if(msg)
+      {
+        if(!task_exists(msg))
+        {
+          var data={};
+          task_id = new Date().getTime()
+          data["task"]=msg;
+          data["done"]=0;
+          $("#itemcount").text($("#itemlist").length);
+          add_task(task_id,data);
+          $("#item").val("");
+          display_task(task_id,data['task'],data["done"]);
+          update_status();
+          //alert(count);
+        }
+      }
+    }  
+  });
+
+  $("input:checkbox").live('click', function(){ 
+    var $task = $(this).closest("div");
+    var task_id=$task.attr("id");
+    var task_status="0";
+    var txt_dec="none";
+    if($(this).attr("checked"))
+    {
+      task_status= "1";
+      txt_dec=" line-through";
+    } 
+    update_task(task_id,task_status);
+    $task.find("span").css('text-decoration', txt_dec);
+    update_status();
+  });  
+
+  $("#clearButton").live('click',function(){
+    $("input:checkbox:checked").each(function() { 
+        var $task = $(this).closest("div");
+        var task_id=$task.attr("id");
+        remove_task(task_id);
+        $task.remove();
+        update_status();
+    });
+  });
+  $("button").live("click",function(){
+    var $task = $(this).closest("div");
+    var task_id=$task.attr("id");
+    remove_task(task_id);
+    $task.remove();
+    update_status();
+  });
+
+});
+
+
+
+</script>
+
+
+
+</head>
+<body>
+
+<div class="outer-div" align="center">
+  <u>Todo List</u>
+    <div class="inner-div" style="width: 960px; color: navy; background-color: pink; padding: 5px;" align="center">
+
+      <input type="text" id="item" placeholder="What do you want to do"> </input>
+       
+    </div>
+    <div id="tasks"></div>
+    <p>Item Count: <span id="itemcount">0</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span id="itemchecked">0 &nbsp
+    </span> <a id="clearButton" href="#"> Items Checked </a>   </p>
+
+</div>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
